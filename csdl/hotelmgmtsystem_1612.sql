@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 15, 2025 at 05:47 PM
+-- Generation Time: Dec 15, 2025 at 06:53 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -111,7 +111,7 @@ CREATE TABLE `reservation` (
   `checkoutDate` date NOT NULL,
   `arrivalTime` time DEFAULT NULL,
   `numberOfGuests` int(11) NOT NULL,
-  `totalStayBill` decimal(10,2) NOT NULL,
+  `totalStayBill` decimal(10,2) DEFAULT NULL,
   `depositPaid` decimal(10,2) NOT NULL,
   `status` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -125,7 +125,7 @@ CREATE TABLE `reservation` (
 CREATE TABLE `reservation_detail` (
   `reservationDetailID` int(11) NOT NULL,
   `reservationID` int(11) NOT NULL,
-  `roomNumber` varchar(10) NOT NULL,
+  `roomNumber` varchar(10) DEFAULT NULL,
   `actualCheckIn` datetime NOT NULL,
   `actualCheckOunt` datetime NOT NULL,
   `roomPrice` decimal(10,2) NOT NULL,
