@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 13, 2025 at 06:46 PM
+-- Generation Time: Dec 15, 2025 at 05:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -48,6 +48,7 @@ CREATE TABLE `customer` (
   `customerID` int(11) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
+  `identifyID` varchar(255) NOT NULL,
   `street` varchar(50) DEFAULT NULL,
   `city` varchar(50) DEFAULT NULL,
   `province` varchar(50) DEFAULT NULL,
@@ -71,8 +72,7 @@ CREATE TABLE `employee` (
   `positionID` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `status` tinyint(1) NOT NULL,
-  `image` mediumblob NOT NULL
+  `status` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -107,14 +107,29 @@ CREATE TABLE `position` (
 CREATE TABLE `reservation` (
   `reservationID` int(11) NOT NULL,
   `customerID` int(11) NOT NULL,
-  `roomNumber` varchar(10) NOT NULL,
   `checkinDate` date NOT NULL,
   `checkoutDate` date NOT NULL,
   `arrivalTime` time DEFAULT NULL,
   `numberOfGuests` int(11) NOT NULL,
   `totalStayBill` decimal(10,2) NOT NULL,
   `depositPaid` decimal(10,2) NOT NULL,
-  `isConfirmed` tinyint(4) NOT NULL
+  `status` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reservation_detail`
+--
+
+CREATE TABLE `reservation_detail` (
+  `reservationDetailID` int(11) NOT NULL,
+  `reservationID` int(11) NOT NULL,
+  `roomNumber` varchar(10) NOT NULL,
+  `actualCheckIn` datetime NOT NULL,
+  `actualCheckOunt` datetime NOT NULL,
+  `roomPrice` decimal(10,2) NOT NULL,
+  `daysBooked` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -131,6 +146,19 @@ CREATE TABLE `room` (
   `capacity` int(11) NOT NULL,
   `floorID` int(11) NOT NULL
 ) ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `room_customer`
+--
+
+CREATE TABLE `room_customer` (
+  `reservationID` int(11) NOT NULL,
+  `roomNumber` varchar(10) NOT NULL,
+  `customerID` int(11) NOT NULL,
+  `isRepresentative` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -153,7 +181,7 @@ CREATE TABLE `service` (
 
 CREATE TABLE `service_order` (
   `serviceOrderID` int(11) NOT NULL,
-  `reservationID` int(11) NOT NULL,
+  `reservationDetailID` int(11) NOT NULL,
   `serviceID` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
   `orderDate` datetime NOT NULL,
@@ -169,7 +197,7 @@ CREATE TABLE `service_order` (
 --
 ALTER TABLE `billing`
   ADD PRIMARY KEY (`billID`),
-  ADD KEY `reservationID` (`reservationID`),
+  ADD UNIQUE KEY `reservationID` (`reservationID`),
   ADD KEY `employeeID` (`employeeID`);
 
 --
@@ -177,7 +205,8 @@ ALTER TABLE `billing`
 --
 ALTER TABLE `customer`
   ADD PRIMARY KEY (`customerID`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `identifyID` (`identifyID`);
 
 --
 -- Indexes for table `employee`
@@ -206,8 +235,15 @@ ALTER TABLE `position`
 --
 ALTER TABLE `reservation`
   ADD PRIMARY KEY (`reservationID`),
-  ADD KEY `roomNumber` (`roomNumber`),
   ADD KEY `customerID` (`customerID`);
+
+--
+-- Indexes for table `reservation_detail`
+--
+ALTER TABLE `reservation_detail`
+  ADD PRIMARY KEY (`reservationDetailID`),
+  ADD KEY `roomNumber` (`roomNumber`),
+  ADD KEY `reservationID` (`reservationID`);
 
 --
 -- Indexes for table `room`
@@ -215,6 +251,14 @@ ALTER TABLE `reservation`
 ALTER TABLE `room`
   ADD PRIMARY KEY (`roomNumber`),
   ADD KEY `floorID` (`floorID`);
+
+--
+-- Indexes for table `room_customer`
+--
+ALTER TABLE `room_customer`
+  ADD PRIMARY KEY (`reservationID`,`roomNumber`,`customerID`),
+  ADD KEY `customerID` (`customerID`),
+  ADD KEY `roomNumber` (`roomNumber`);
 
 --
 -- Indexes for table `service`
@@ -228,8 +272,8 @@ ALTER TABLE `service`
 --
 ALTER TABLE `service_order`
   ADD PRIMARY KEY (`serviceOrderID`),
-  ADD KEY `reservationID` (`reservationID`),
-  ADD KEY `serviceID` (`serviceID`);
+  ADD KEY `serviceID` (`serviceID`),
+  ADD KEY `service_order_ibfk_1` (`reservationDetailID`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -272,6 +316,12 @@ ALTER TABLE `reservation`
   MODIFY `reservationID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `reservation_detail`
+--
+ALTER TABLE `reservation_detail`
+  MODIFY `reservationDetailID` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `service`
 --
 ALTER TABLE `service`
@@ -304,8 +354,14 @@ ALTER TABLE `employee`
 -- Constraints for table `reservation`
 --
 ALTER TABLE `reservation`
-  ADD CONSTRAINT `reservation_ibfk_1` FOREIGN KEY (`roomNumber`) REFERENCES `room` (`roomNumber`),
   ADD CONSTRAINT `reservation_ibfk_2` FOREIGN KEY (`customerID`) REFERENCES `customer` (`customerID`);
+
+--
+-- Constraints for table `reservation_detail`
+--
+ALTER TABLE `reservation_detail`
+  ADD CONSTRAINT `reservation_detail_ibfk_1` FOREIGN KEY (`roomNumber`) REFERENCES `room` (`roomNumber`),
+  ADD CONSTRAINT `reservation_detail_ibfk_2` FOREIGN KEY (`reservationID`) REFERENCES `reservation` (`reservationID`);
 
 --
 -- Constraints for table `room`
@@ -314,10 +370,18 @@ ALTER TABLE `room`
   ADD CONSTRAINT `room_ibfk_1` FOREIGN KEY (`floorID`) REFERENCES `floor` (`floorID`);
 
 --
+-- Constraints for table `room_customer`
+--
+ALTER TABLE `room_customer`
+  ADD CONSTRAINT `room_customer_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `customer` (`customerID`),
+  ADD CONSTRAINT `room_customer_ibfk_2` FOREIGN KEY (`reservationID`) REFERENCES `reservation` (`reservationID`),
+  ADD CONSTRAINT `room_customer_ibfk_3` FOREIGN KEY (`roomNumber`) REFERENCES `room` (`roomNumber`);
+
+--
 -- Constraints for table `service_order`
 --
 ALTER TABLE `service_order`
-  ADD CONSTRAINT `service_order_ibfk_1` FOREIGN KEY (`reservationID`) REFERENCES `reservation` (`reservationID`),
+  ADD CONSTRAINT `service_order_ibfk_1` FOREIGN KEY (`reservationDetailID`) REFERENCES `reservation_detail` (`reservationDetailID`),
   ADD CONSTRAINT `service_order_ibfk_2` FOREIGN KEY (`serviceID`) REFERENCES `service` (`serviceID`);
 COMMIT;
 
