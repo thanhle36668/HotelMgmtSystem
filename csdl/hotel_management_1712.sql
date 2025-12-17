@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 15, 2025 at 06:53 PM
+-- Generation Time: Dec 17, 2025 at 04:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `hotelmgmtsystem`
+-- Database: `hotel_management`
 --
 
 -- --------------------------------------------------------
@@ -33,6 +33,7 @@ CREATE TABLE `billing` (
   `stayAmount` decimal(10,2) NOT NULL,
   `serviceAmount` decimal(10,2) NOT NULL,
   `totalAmount` decimal(10,2) NOT NULL,
+  `taxAmount` decimal(10,2) NOT NULL,
   `billDate` datetime NOT NULL,
   `paymentStatus` varchar(20) NOT NULL,
   `employeeID` int(11) NOT NULL
@@ -85,6 +86,14 @@ CREATE TABLE `floor` (
   `floorID` int(11) NOT NULL,
   `floorName` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `floor`
+--
+
+INSERT INTO `floor` (`floorID`, `floorName`) VALUES
+(1, 'Tầng 1'),
+(2, 'Tầng 2');
 
 -- --------------------------------------------------------
 
@@ -145,7 +154,16 @@ CREATE TABLE `room` (
   `status` varchar(20) NOT NULL,
   `capacity` int(11) NOT NULL,
   `floorID` int(11) NOT NULL
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `room`
+--
+
+INSERT INTO `room` (`roomNumber`, `roomType`, `rate`, `status`, `capacity`, `floorID`) VALUES
+('P101', 'Thường', 200000.00, 'available', 2, 1),
+('P102', 'Vip', 400000.00, 'available', 2, 1),
+('P103', 'Vip', 400000.00, 'available', 2, 1);
 
 -- --------------------------------------------------------
 
@@ -170,7 +188,8 @@ CREATE TABLE `service` (
   `serviceID` int(11) NOT NULL,
   `serviceName` varchar(100) NOT NULL,
   `serviceType` varchar(50) NOT NULL,
-  `price` decimal(10,2) NOT NULL
+  `price` decimal(10,2) NOT NULL,
+  `unit` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -301,7 +320,7 @@ ALTER TABLE `employee`
 -- AUTO_INCREMENT for table `floor`
 --
 ALTER TABLE `floor`
-  MODIFY `floorID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `floorID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `position`
